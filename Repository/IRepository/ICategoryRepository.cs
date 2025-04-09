@@ -4,11 +4,11 @@ namespace YumBlazor.Repository.IRepository
 {
     public interface ICategoryRepository
     {
-        public Category Create(Category category);
-        public Category Update(Category category);
-        public bool Delete(int Id);
-        public Category Get(int Id);
-        public IEnumerable<Category> GetAll();
+        public Task<Category> CreateAsync(Category category);
+        public Task<Category> UpdateAsync(Category category);
+        public Task<bool> DeleteAsync(int Id);
+        public Task<Category> GetAsync(int Id);
+        public Task<IEnumerable<Category>> GetAllAsync();
 
     }
 }
