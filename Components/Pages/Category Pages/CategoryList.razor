@@ -1,6 +1,8 @@
 ﻿@page "/category"
 @inject ICategoryRepository _categoryRepo
+@inject IJSRuntime _JS
 
+<YumBlazor.Components.Pages.Shared.BsModal OnModalDeleteConfirmation="ConfirmDelete"></YumBlazor.Components.Pages.Shared.BsModal>
 @if (isBusy)
 {
     <div class="position-absolute w-75 h-75 d-flex flex-column align-items-center bg-white justify-content-center">
@@ -41,7 +43,7 @@ else
                                 <td>@item.Name</td>
                                 <td>
                                     <a href="category/update/@item.Id" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
-                                    <button class="btn btn-danger"><i class="bi bi-pencil-square"></i> Delete</button>
+                                    <button class="btn btn-danger" @onclick="()=>HandleDelete(item.Id)"><i class="bi bi-pencil-square"></i> Delete</button>
                                 </td>
                             </tr>
                         }
@@ -54,7 +56,7 @@ else
 @code {
     bool isBusy { get; set; } = true;
     IEnumerable<Category> Categories { get; set; } = new List<Category>();
-
+    int DeleteCatId { get; set; }
     protected override async Task OnInitializedAsync()
     {
     }
@@ -67,11 +69,34 @@ else
             isBusy = false;
             StateHasChanged();
         }
-        
+
     }
 
     async Task LoadCategories()
     {
         Categories = await _categoryRepo.GetAllAsync();
+    }
+    void HandleDelete(int id)
+    {
+        DeleteCatId = id;
+        _JS.InvokeVoidAsync("ShowConfirmationModal");
+    }
+
+    public async Task ConfirmDelete(bool Result)
+    {
+        isBusy = true;
+        await _JS.InvokeVoidAsync("HideConfirmationModal");
+        if (Result && DeleteCatId != 0)
+        {
+            bool res = await _categoryRepo.DeleteAsync(DeleteCatId);
+            if (res)
+                await _JS.ToastrSuccess("Category Deleted Successfuly!");
+            else
+                await _JS.ToastrError("Error Encountered while deleting!");
+            await LoadCategories();
+        }
+        DeleteCatId = 0;
+        isBusy = false;
+
     }
 }
